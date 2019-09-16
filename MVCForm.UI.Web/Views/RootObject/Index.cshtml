@@ -1,0 +1,135 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/SiteLayout.cshtml";
+}
+@model List<MVCForm.UI.Web.Models.VM.RootObjectVM>
+<!-- Page Heading -->
+<h1 class="h3 mb-2 text-gray-800">Tables</h1>
+<p class="mb-4">DataTables is a third party plugin that is used to generate the demo table below. For more information about DataTables, please visit the <a target="_blank" href="https://datatables.net">official DataTables documentation</a>.</p>
+<!-- DataTales Example -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">DataTables Example</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>Adı</th>
+                        <th>Açıklama</th>
+                        
+                    </tr>
+                </thead>
+                <tfoot>
+                    <tr>
+                        <th>Adı</th>
+                        <th>Açıklama</th>
+                        
+                    </tr>
+                </tfoot>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr id="@item.id" style="cursor:pointer">                           
+                            <td>@item.Adi</td>
+                            <td>@item.Aciklama</td>
+                            
+                            <td onclick="Delete(@item.id)"><i class="fa fa-trash" aria-hidden="true"></i></td>
+                            <td><i class="fa fa-edit" aria-hidden="true" data-toggle="modal" data-target="#myModal" data-id="@item.id"></i></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<!-- Modal -->
+<div id="myModal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Modal Header</h4>
+            </div>
+            <div class="modal-body">
+                <p>Some text in the modal.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Page level plugins -->
+<script src="/Content/vendor/datatables/jquery.dataTables.min.js"></script>
+<script src="/Content/vendor/datatables/dataTables.bootstrap4.min.js"></script>
+<!-- Page level custom scripts -->
+<script src="/Content/js/demo/datatables-demo.js"></script>
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+<script src="/Scripts/jquery.signalR-2.4.1.min.js"></script>
+<script src="~/signalr/hubs"></script>
+
+<script>
+
+    $(document).on("click", ".fa-edit", function () {
+        var id = $(this).data('id');
+
+        $(".modal-body p").text(id);
+    });
+</script>
+<script>
+    var notification = $.connection.notificationHub;
+
+    notification.client.productalarm = function (id) {
+        alert(id + " numaralı ürün silindi!!")
+    };
+
+
+    function Delete(id) {
+
+        swal({
+            title: "Formu silmek istediğinize emin misiniz?",
+            text: "silinen form geri gelmez!!",
+            icon: "warning",
+            buttons: true,
+            dangerMode: true,
+        })
+            .then((willDelete) => {
+                if (willDelete) {
+
+                   
+                    $.ajax({
+                        url: "/RootObject/Delete/" + id,
+                        type: "POST",
+                        success: function () {
+                            $("#" + id).fadeOut();
+                        },
+                        error: function () {
+                            alert("Hata meydana geldi")
+                        }
+                    })
+
+                    
+
+                    $.connection.hub.start().done(function () {
+
+                        notification.server.deleteproductalarm(id);
+                    });
+
+
+                    swal("Forum başarıyla silindi!", {
+                        icon: "success",
+                    });
+
+
+                } else {
+                    swal("Silme işlemi iptal edildi!");
+                }
+            });
+
+    }
+</script>
